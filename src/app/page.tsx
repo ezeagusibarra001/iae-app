@@ -1,4 +1,5 @@
 "use client";
+import Countdown from "@/components/Countdown";
 import Hero from "@/components/Hero";
 import { ContactData } from "@/types/global.types";
 import { ChangeEvent, useState } from "react";
@@ -21,28 +22,33 @@ export default function Home() {
       const reader = new FileReader();
 
       reader.onload = async (e) => {
-        if (e.target && e.target.result) {
-          const data = new Uint8Array(e.target.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: "array" });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const json = XLSX.utils.sheet_to_json(worksheet);
-          setExcelData(json as ContactData[]);
+        try {
+          if (e.target && e.target.result) {
+            const data = new Uint8Array(e.target.result as ArrayBuffer);
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+            setExcelData(json as ContactData[]);
 
-          const response = await fetch("/api/upload", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(json),
-          });
+            const response = await fetch("/api/upload", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(json),
+            });
 
-          if (response.ok) {
-            console.log("Data uploaded successfully");
-            toast.dismiss();
-            toast.success("Data uploaded successfully");
+            if (response.ok) {
+              console.log("Data uploaded successfully");
+              toast.dismiss();
+              toast.success("Data uploaded successfully");
+            }
+            setLoading(false);
           }
-          setLoading(false);
+        } catch (error) {
+          console.error(error);
+          throw new Error();
         }
       };
 
@@ -58,7 +64,7 @@ export default function Home() {
     <>
       <main>
         <Hero handleFileChange={handleFileChange} loading={loading} />
-        {loading ? "Cargando..." : ""}
+        {loading && <Countdown />}
       </main>
       <Toaster position="top-center" reverseOrder={false} />
     </>
