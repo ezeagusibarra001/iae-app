@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Contact {
+  id                   Int     @id @default(autoincrement())
+  contactoid           String  @default("")
+  Mail                 String  @default("")
+  Fecha_Creacion       Int     @default(0)
+  new_utm_campaign     String  @default("")
+  new_utm_content      String  @default("")
+  new_utm_medium       String  @default("")
+  new_utm_source       String  @default("")
+  new_utm_term         String  @default("")
+  new_utmsname         String  @default("")
+  Estado_Interes       String  @default("")
+  Pais                 String  @default("")
+  Linea_Producto       String  @default("")
+  Tipo_Producto        String  @default("")
+  Programa             String  @default("")
+  utm_campaign_contacto String @default("")
+  utm_content_contacto String  @default("")
+  utm_medium_contacto  String  @default("")
+  utm_source_contacto  String  @default("")
+  utm_term_contacto    String  @default("")
+  Campaniaid           String? @default("")
+  Campaniaid_Opp       String? @default("")
+  Fecha_Venta          String? @default("")
+  Estado_Venta         String  @default("")
+  Importe_Venta        Int     @default(0)
+}
