@@ -10,6 +10,14 @@ export default function Home() {
   const [excelData, setExcelData] = useState<ContactData[] | null>(null);
   const [loading, setLoading] = useState(false);
 
+  function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      chunks.push(array.slice(i, i + chunkSize));
+    }
+    return chunks;
+  }
+
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     try {
       setLoading(true);
@@ -31,15 +39,30 @@ export default function Home() {
             const json = XLSX.utils.sheet_to_json(worksheet);
             setExcelData(json as ContactData[]);
 
-            const response = await fetch("/api/upload", {
-              method: "POST",
+            const chunkSize = 1000;
+            const dataChunks = chunkArray(json, chunkSize);
+
+            const deleteRes = await fetch("/api/delete", {
+              method: "DELETE",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(json),
             });
+            console.log(deleteRes);
 
-            if (response.ok) {
+            const promises = dataChunks.map((chunk) =>
+              fetch("/api/create", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(chunk),
+              })
+            );
+            console.log(promises);
+            const res = await Promise.all(promises);
+
+            if (res.every((r) => r.ok)) {
               console.log("Data uploaded successfully");
               toast.dismiss();
               toast.success("Data uploaded successfully");
