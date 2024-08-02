@@ -1,6 +1,6 @@
 "use client";
-import Countdown from "@/components/Countdown";
 import Hero from "@/components/Hero";
+import ProgressBar from "@/components/ProgressBar";
 import { ContactData } from "@/types/global.types";
 import { ChangeEvent, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
@@ -9,6 +9,9 @@ import * as XLSX from "xlsx";
 export default function Home() {
   const [excelData, setExcelData] = useState<ContactData[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [remainingChunks, setRemainingChunks] = useState(0);
+  const [maxChunks, setMaxChunks] = useState(0);
+  
 
   function chunkArray<T>(array: T[], chunkSize: number): T[][] {
     const chunks: T[][] = [];
@@ -41,6 +44,8 @@ export default function Home() {
 
             const chunkSize = 1000;
             const dataChunks = chunkArray(json, chunkSize);
+            setRemainingChunks(dataChunks.length);
+            setMaxChunks(dataChunks.length)
 
             const deleteRes = await fetch("/api/delete", {
               method: "DELETE",
@@ -62,6 +67,8 @@ export default function Home() {
               if (!res.ok) {
                 throw new Error("Failed to upload chunk");
               }
+
+              setRemainingChunks(prev => prev - 1);
             }
 
             console.log("Data uploaded successfully");
@@ -88,7 +95,12 @@ export default function Home() {
     <>
       <main>
         <Hero handleFileChange={handleFileChange} loading={loading} />
-        {loading && <Countdown />}
+        {loading && maxChunks !== 0 && (
+          <div>
+            <p>Remaining chunks: {remainingChunks}</p>
+            <ProgressBar  maxChunks={maxChunks} remainingChunks={remainingChunks} />
+          </div>
+        )}
       </main>
       <Toaster position="top-center" reverseOrder={false} />
     </>
