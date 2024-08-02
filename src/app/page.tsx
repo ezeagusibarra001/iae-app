@@ -50,23 +50,23 @@ export default function Home() {
             });
             console.log(deleteRes);
 
-            const promises = dataChunks.map((chunk) =>
-              fetch("/api/create", {
+            for (const chunk of dataChunks) {
+              const res = await fetch("/api/create", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify(chunk),
-              })
-            );
-            console.log(promises);
-            const res = await Promise.all(promises);
+              });
 
-            if (res.every((r) => r.ok)) {
-              console.log("Data uploaded successfully");
-              toast.dismiss();
-              toast.success("Data uploaded successfully");
+              if (!res.ok) {
+                throw new Error("Failed to upload chunk");
+              }
             }
+
+            console.log("Data uploaded successfully");
+            toast.dismiss();
+            toast.success("Data uploaded successfully");
             setLoading(false);
           }
         } catch (error) {
@@ -80,6 +80,7 @@ export default function Home() {
       console.error(error);
       toast.dismiss();
       toast.error("Failed to upload data");
+      setLoading(false);
     }
   };
 
