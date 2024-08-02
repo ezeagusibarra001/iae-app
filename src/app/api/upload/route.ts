@@ -3,6 +3,12 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+export const config = {
+  api: {
+    responseLimit: false
+  },
+}
+
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
