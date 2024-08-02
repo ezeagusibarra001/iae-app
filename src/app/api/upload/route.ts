@@ -1,20 +1,38 @@
-export const maxDuration = 60
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function POST(request: NextRequest) {
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const data = await request.json();
 
     await prisma.contact.deleteMany({});
 
-    await prisma.contact.createMany({
-      data,
-    });
+    const chunkSize = 1000;
+    const dataChunks = chunkArray(data, chunkSize);
+    console.log(dataChunks)
+    const promises = dataChunks.map(chunk =>
+      fetch(`${request.nextUrl.origin}/api/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(chunk),
+      })
+    );
 
-    return NextResponse.json({ message: 'Data inserted successfully' });
+    await Promise.all(promises);
+
+    return NextResponse.json({ message: 'Data deleted and insertion triggered successfully' });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
